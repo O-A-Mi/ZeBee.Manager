@@ -1,5 +1,5 @@
 import { useMemo, useState, useEffect } from 'react';
-import { Link, useSearchParams } from 'react-router-dom'; // 1. Importe useSearchParams
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'; // 1. Importe useNavigate
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from '@/components/ui/badge';
@@ -19,7 +19,8 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Loader2, AlertCircle, ChevronsLeft, ChevronLeft, ChevronRight, ChevronsRight, Filter, X, Trash2 } from 'lucide-react';
+// 2. Importe o ícone Pencil
+import { Loader2, AlertCircle, ChevronsLeft, ChevronLeft, ChevronRight, ChevronsRight, Filter, X, Trash2, Pencil } from 'lucide-react';
 import { format, parseISO, startOfDay, endOfDay } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
@@ -49,7 +50,8 @@ const ListingClient = () => {
     const [pageSize, setPageSize] = useState(20);
 
     const [clientToDelete, setClientToDelete] = useState<ClientData | null>(null);
-    const [searchParams, setSearchParams] = useSearchParams(); // 2. Use o hook
+    const [searchParams, setSearchParams] = useSearchParams();
+    const navigate = useNavigate(); // 3. Inicialize o hook de navegação
 
     const fetchClients = async () => {
         setLoading(true);
@@ -67,13 +69,11 @@ const ListingClient = () => {
         fetchClients();
     }, []);
 
-    // 3. Este novo useEffect reage a mudanças na URL e atualiza o estado de 'query'
     useEffect(() => {
         setQuery(searchParams.get('q') || '');
     }, [searchParams]);
 
     const handleClearFilters = () => {
-        // Agora o "Limpar" também remove os parâmetros da URL
         setSearchParams({});
         setStatusFilter('todos');
         setDateRange(undefined);
@@ -125,7 +125,6 @@ const ListingClient = () => {
         return filteredClients.slice(start, end);
     }, [filteredClients, pageIndex, pageSize]);
 
-    // ... (o resto do componente continua igual)
     const getLatestMetrics = (monthlyData: ClientData['monthly_data']) => {
         if (!monthlyData) return { acos: 'N/A', tacos: 'N/A' };
         const years = Object.keys(monthlyData).sort((a, b) => parseInt(b) - parseInt(a));
@@ -203,21 +202,25 @@ const ListingClient = () => {
                                 <TableHead>Nome da Loja</TableHead>
                                 <TableHead>E-mail</TableHead>
                                 <TableHead>Status</TableHead>
-                                <TableHead className="text-right w-[100px]">Ações</TableHead>
+                                <TableHead className="text-right w-[120px]">Ações</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
                             {paginatedClients.map(client => (
                                 <TableRow key={client.id} className="hover:bg-muted/50">
                                     <TableCell className="font-medium">
-                                        <Link to={`/registrar?id=${client.id}`} className="text-blue-500 hover:underline">{client.seller_id}</Link>
+                                        {client.seller_id}
                                     </TableCell>
                                     <TableCell>{client.store_name}</TableCell>
                                     <TableCell>{client.seller_email}</TableCell>
                                     <TableCell>
                                         <Badge variant={client.status === 'Ativo' ? 'default' : 'destructive'} className={cn(client.status === 'Ativo' ? 'bg-green-600' : 'bg-red-600', 'text-white')}>{client.status}</Badge>
                                     </TableCell>
-                                    <TableCell className="text-right">
+                                    <TableCell className="text-right space-x-2">
+                                        {/* 4. Botão de Edição */}
+                                        <Button variant="ghost" size="icon" onClick={() => navigate(`/registrar?id=${client.id}`)}>
+                                            <Pencil className="h-4 w-4 text-blue-500" />
+                                        </Button>
                                         <Button variant="ghost" size="icon" onClick={() => setClientToDelete(client)}>
                                             <Trash2 className="h-4 w-4 text-red-500" />
                                         </Button>
@@ -233,7 +236,7 @@ const ListingClient = () => {
                         <Card key={client.id} className="w-full">
                             <CardHeader>
                                 <CardTitle className="flex justify-between items-start text-base">
-                                    <Link to={`/registrar?id=${client.id}`} className="text-blue-500 hover:underline break-all pr-2">{client.store_name}</Link>
+                                    <span className="break-all pr-2">{client.store_name}</span>
                                     <Badge variant={client.status === 'Ativo' ? 'default' : 'destructive'} className={cn(client.status === 'Ativo' ? 'bg-green-600' : 'bg-red-600', 'text-white flex-shrink-0')}>{client.status}</Badge>
                                 </CardTitle>
                             </CardHeader>
@@ -241,8 +244,12 @@ const ListingClient = () => {
                                 <p><strong className="text-muted-foreground">ID:</strong> {client.seller_id}</p>
                                 <p className="break-all"><strong className="text-muted-foreground">Email:</strong> {client.seller_email}</p>
                             </CardContent>
-                            <CardFooter className="justify-end">
-                                <Button variant="ghost" size="icon" onClick={() => setClientToDelete(client)}>
+                            <CardFooter className="justify-end space-x-2">
+                                {/* 4. Botão de Edição */}
+                                <Button variant="outline" size="icon" onClick={() => navigate(`/registrar?id=${client.id}`)}>
+                                    <Pencil className="h-5 w-5 text-blue-500" />
+                                </Button>
+                                <Button variant="outline" size="icon" onClick={() => setClientToDelete(client)}>
                                     <Trash2 className="h-5 w-5 text-red-500" />
                                 </Button>
                             </CardFooter>
