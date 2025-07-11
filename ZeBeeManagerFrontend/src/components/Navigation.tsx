@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom'; // 1. Importe useSearchParams
+import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { BarChart3, UserPlus, Building2, Search, Menu, LogOut } from 'lucide-react';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { Input } from '@/components/ui/input';
@@ -16,10 +16,10 @@ const Navigation = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-
   const [searchTerm, setSearchTerm] = useState(searchParams.get('q') || '');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
+  // Sincroniza o campo de busca se a URL mudar
   useEffect(() => {
     setSearchTerm(searchParams.get('q') || '');
   }, [searchParams]);
@@ -31,16 +31,22 @@ const Navigation = () => {
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const term = searchTerm.trim();
+    
+    // Cria uma cópia dos parâmetros atuais para não perder outros filtros
+    const newSearchParams = new URLSearchParams(searchParams);
 
-    if (location.pathname !== '/lista-clientes') {
-      navigate(`/lista-clientes?q=${encodeURIComponent(term)}`);
+    if (term) {
+      newSearchParams.set('q', term);
     } else {
-      if (term) {
-        searchParams.set('q', term);
-      } else {
-        searchParams.delete('q');
-      }
-      setSearchParams(searchParams);
+      newSearchParams.delete('q');
+    }
+    
+    // Se não estiver na página de clientes, navega para lá com todos os parâmetros.
+    if (location.pathname !== '/lista-clientes') {
+      navigate(`/lista-clientes?${newSearchParams.toString()}`);
+    } else {
+      // Se já estiver na página, apenas atualiza os parâmetros da URL.
+      setSearchParams(newSearchParams);
     }
   };
 

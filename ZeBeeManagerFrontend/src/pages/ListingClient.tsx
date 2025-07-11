@@ -1,5 +1,5 @@
 import { useMemo, useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom'; // 1. Importe useSearchParams
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from '@/components/ui/badge';
@@ -49,6 +49,7 @@ const ListingClient = () => {
     const [pageSize, setPageSize] = useState(20);
 
     const [clientToDelete, setClientToDelete] = useState<ClientData | null>(null);
+    const [searchParams, setSearchParams] = useSearchParams(); // 2. Use o hook
 
     const fetchClients = async () => {
         setLoading(true);
@@ -64,15 +65,18 @@ const ListingClient = () => {
 
     useEffect(() => {
         fetchClients();
-        const searchParams = new URLSearchParams(window.location.search);
-        setQuery(searchParams.get('q') || '');
     }, []);
 
+    // 3. Este novo useEffect reage a mudanças na URL e atualiza o estado de 'query'
+    useEffect(() => {
+        setQuery(searchParams.get('q') || '');
+    }, [searchParams]);
+
     const handleClearFilters = () => {
+        // Agora o "Limpar" também remove os parâmetros da URL
+        setSearchParams({});
         setStatusFilter('todos');
         setDateRange(undefined);
-        setQuery('');
-        window.history.pushState({}, '', window.location.pathname);
     };
 
     const handleDeleteClient = async () => {
@@ -80,14 +84,11 @@ const ListingClient = () => {
 
         try {
             await api.delete(`/clients/${clientToDelete.id}/`);
-
             toast({
                 title: "Sucesso!",
                 description: `Cliente "${clientToDelete.store_name}" foi excluído.`,
             });
-            
             setClients(prevClients => prevClients.filter(client => client.id !== clientToDelete.id));
-
         } catch (err) {
             toast({
                 title: "Erro",
@@ -124,6 +125,7 @@ const ListingClient = () => {
         return filteredClients.slice(start, end);
     }, [filteredClients, pageIndex, pageSize]);
 
+    // ... (o resto do componente continua igual)
     const getLatestMetrics = (monthlyData: ClientData['monthly_data']) => {
         if (!monthlyData) return { acos: 'N/A', tacos: 'N/A' };
         const years = Object.keys(monthlyData).sort((a, b) => parseInt(b) - parseInt(a));
@@ -208,7 +210,7 @@ const ListingClient = () => {
                             {paginatedClients.map(client => (
                                 <TableRow key={client.id} className="hover:bg-muted/50">
                                     <TableCell className="font-medium">
-                                        <Link to={`/registrar?id=${client.id}`} className="text-blue-500 hover:underline">{client.id}</Link>
+                                        <Link to={`/registrar?id=${client.id}`} className="text-blue-500 hover:underline">{client.seller_id}</Link>
                                     </TableCell>
                                     <TableCell>{client.store_name}</TableCell>
                                     <TableCell>{client.seller_email}</TableCell>
