@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom'; // 1. Importe useSearchParams
 import { BarChart3, UserPlus, Building2, Search, Menu, LogOut } from 'lucide-react';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { Input } from '@/components/ui/input';
@@ -15,8 +15,14 @@ import {
 const Navigation = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const [searchTerm, setSearchTerm] = useState(searchParams.get('q') || '');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  useEffect(() => {
+    setSearchTerm(searchParams.get('q') || '');
+  }, [searchParams]);
 
   const isActive = (path: string) => {
     return location.pathname === path;
@@ -24,9 +30,17 @@ const Navigation = () => {
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (searchTerm.trim()) {
-      navigate(`/lista-clientes?q=${encodeURIComponent(searchTerm.trim())}`);
-      setSearchTerm('');
+    const term = searchTerm.trim();
+
+    if (location.pathname !== '/lista-clientes') {
+      navigate(`/lista-clientes?q=${encodeURIComponent(term)}`);
+    } else {
+      if (term) {
+        searchParams.set('q', term);
+      } else {
+        searchParams.delete('q');
+      }
+      setSearchParams(searchParams);
     }
   };
 
@@ -34,10 +48,9 @@ const Navigation = () => {
     setIsMobileMenuOpen(false);
   };
 
-  // 2. Crie a função de logout
   const handleLogout = () => {
-    localStorage.removeItem('authToken'); // Remove o token
-    navigate('/'); // Redireciona para a página de login
+    localStorage.removeItem('authToken');
+    navigate('/');
   };
 
   return (
@@ -67,7 +80,6 @@ const Navigation = () => {
           </div>
 
           <div className="hidden md:flex items-center space-x-2">
-            {/* 3. Corrija o link do Dashboard */}
             <Link to="/dashboard" className={`flex items-center gap-2 px-3 py-2 rounded-lg font-medium transition-colors ${ isActive('/dashboard') ? 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300' : 'text-muted-foreground hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20'}`}>
               <BarChart3 className="h-4 w-4" />
               Dashboard
@@ -81,7 +93,6 @@ const Navigation = () => {
               Clientes
             </Link>
             <ThemeToggle />
-            {/* 4. Adicione o botão de logout no desktop */}
             <Button variant="ghost" size="icon" onClick={handleLogout} title="Sair">
                 <LogOut className="h-4 w-4 text-red-500"/>
             </Button>
@@ -102,7 +113,6 @@ const Navigation = () => {
                 
                 <div className="flex-1 overflow-y-auto">
                   <nav className="p-4 space-y-2">
-                    {/* 3. Corrija o link do Dashboard no mobile */}
                     <Link to="/dashboard" onClick={handleLinkClick} className={`flex items-center gap-3 p-3 rounded-lg font-medium transition-colors text-base ${ isActive('/dashboard') ? 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300' : 'text-muted-foreground hover:bg-muted'}`}>
                       <BarChart3 className="h-5 w-5" />
                       Dashboard
@@ -120,7 +130,6 @@ const Navigation = () => {
 
                 <div className="p-4 border-t mt-auto flex justify-between items-center">
                   <ThemeToggle />
-                  {/* 4. Adicione o botão de logout no mobile */}
                   <Button variant="ghost" onClick={handleLogout} className="text-red-500 hover:text-red-500 hover:bg-red-500/10">
                     Sair
                     <LogOut className="ml-2 h-5 w-5"/>
