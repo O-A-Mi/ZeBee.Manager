@@ -1,5 +1,5 @@
 import { useMemo, useState, useEffect } from 'react';
-import { Link, useNavigate, useSearchParams } from 'react-router-dom'; // 1. Importe useNavigate
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from '@/components/ui/badge';
@@ -19,7 +19,6 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-// 2. Importe o ícone Pencil
 import { Loader2, AlertCircle, ChevronsLeft, ChevronLeft, ChevronRight, ChevronsRight, Filter, X, Trash2, Pencil } from 'lucide-react';
 import { format, parseISO, startOfDay, endOfDay } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -51,7 +50,7 @@ const ListingClient = () => {
 
     const [clientToDelete, setClientToDelete] = useState<ClientData | null>(null);
     const [searchParams, setSearchParams] = useSearchParams();
-    const navigate = useNavigate(); // 3. Inicialize o hook de navegação
+    const navigate = useNavigate();
 
     const fetchClients = async () => {
         setLoading(true);
@@ -202,7 +201,7 @@ const ListingClient = () => {
                                 <TableHead>Nome da Loja</TableHead>
                                 <TableHead>E-mail</TableHead>
                                 <TableHead>Status</TableHead>
-                                <TableHead className="text-right w-[120px]">Ações</TableHead>
+                                <TableHead className="text-center w-[120px]">Ações</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -217,7 +216,6 @@ const ListingClient = () => {
                                         <Badge variant={client.status === 'Ativo' ? 'default' : 'destructive'} className={cn(client.status === 'Ativo' ? 'bg-green-600' : 'bg-red-600', 'text-white')}>{client.status}</Badge>
                                     </TableCell>
                                     <TableCell className="text-right space-x-2">
-                                        {/* 4. Botão de Edição */}
                                         <Button variant="ghost" size="icon" onClick={() => navigate(`/registrar?id=${client.id}`)}>
                                             <Pencil className="h-4 w-4 text-blue-500" />
                                         </Button>
@@ -245,7 +243,6 @@ const ListingClient = () => {
                                 <p className="break-all"><strong className="text-muted-foreground">Email:</strong> {client.seller_email}</p>
                             </CardContent>
                             <CardFooter className="justify-end space-x-2">
-                                {/* 4. Botão de Edição */}
                                 <Button variant="outline" size="icon" onClick={() => navigate(`/registrar?id=${client.id}`)}>
                                     <Pencil className="h-5 w-5 text-blue-500" />
                                 </Button>
